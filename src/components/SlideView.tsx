@@ -1,0 +1,204 @@
+import { useEffect, useLayoutEffect, useRef } from 'react'
+import gsap from 'gsap'
+import type { Slide } from '../data/types'
+import { presentation, usePresentation } from '../state/presentation'
+import { useLayout, useReducedMotion } from '../hooks/useMedia'
+import { StatChip } from './StatChip'
+import { PhotoLayer } from './PhotoLayer'
+import { FallbackVisual } from './FallbackVisual'
+import { ResultsLegend, ResultsList } from './ResultsList'
+
+interface Props {
+  slide: Slide
+  index: number
+  use3D: boolean
+  /** First slide shown after page load: waits for the backdrop + camera entrance. */
+  first: boolean
+}
+
+const OUT_SELECTOR = '.js-line, .js-in, .js-stat'
+
+/**
+ * One slide's HTML layer (text, stats, photos, data strip). Mounted per slide; the
+ * parent swaps it after the outgoing animation, and this component plays the entrance.
+ */
+export function SlideView({ slide, index, use3D, first }: Props) {
+  const root = useRef<HTMLDivElement>(null)
+  const reduced = useReducedMotion()
+  const layout = useLayout()
+  const direction = usePresentation((s) => s.direction)
+  const isMobile = layout === 'mobile'
+
+  // Entrance
+  useLayoutEffect(() => {
+    const el = root.current
+    if (!el) return
+    const ctx = gsap.context(() => {
+      const d0 = first ? 0.9 : 0.15
+      if (reduced) {
+        gsap.from(gsap.utils.selector(el)(`${OUT_SELECTOR}, .js-photo, .js-in-kicker`), { opacity: 0, duration: 0.3, delay: first ? 0.2 : 0 })
+        return
+      }
+      const q = gsap.utils.selector(el)
+      const tl = gsap.timeline({ delay: d0 })
+      tl.from(q('.js-in-kicker'), { opacity: 0, x: -16 * direction, duration: 0.6, ease: 'power3.out' })
+        .from(
+          q('.js-line'),
+          { yPercent: 115, rotateX: -35, opacity: 0, duration: 0.95, stagger: 0.09, ease: 'expo.out' },
+          '<0.05',
+        )
+      const ins = q('.js-in')
+      if (ins.length)
+        tl.from(ins, { opacity: 0, y: 14, filter: 'blur(6px)', duration: 0.7, stagger: 0.06, ease: 'power3.out', clearProps: 'filter' }, '<0.35')
+      const stats = q('.js-stat')
+      if (stats.length)
+        tl.from(
+          stats,
+          { opacity: 0, y: 22, z: -80, scale: 0.94, filter: 'blur(8px)', duration: 0.8, stagger: 0.07, ease: 'power3.out', clearProps: 'filter' },
+          '<0.1',
+        )
+      gsap.utils.toArray<HTMLElement>('.js-photo', el).forEach((ph, i) => {
+        const depth = Number(ph.dataset.depth ?? 0.5)
+        gsap.from(ph, {
+          opacity: 0,
+          z: -260 - depth * 200,
+          xPercent: 18 * direction * (1 + depth),
+          rotateY: -14 * direction,
+          filter: 'blur(10px)',
+          duration: 1.4,
+          delay: d0 + 0.25 + i * 0.12,
+          ease: 'expo.out',
+          clearProps: 'filter',
+        })
+      })
+    }, el)
+    return () => ctx.revert()
+    // Direction is read at mount time only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const showResultsList = slide.visual === 'results' && (!use3D || isMobile)
+  const extras = slide.hero.length > 1 || slide.strip.length > 0 || !!slide.tags?.length || !!slide.investment
+
+  return (
+    <div
+      className={`slide slide--${slide.visual}`}
+      ref={root}
+      role="group"
+      aria-roledescription="slayd"
+      aria-label={`${index + 1} / ${presentation.count}: ${slide.navLabel}`}
+    >
+      <div className="slide__text">
+        <p className="kicker js-in-kicker">
+          <span className="kicker__bar" aria-hidden="true" />
+          {slide.kicker}
+        </p>
+        <h1 className="title">
+          {slide.title.map((line) => (
+            <span className="title__line" key={line}>
+              <span className="title__inner js-line">{line}</span>
+            </span>
+          ))}
+        </h1>
+        {slide.subtitle && <p className="subtitle js-in">{slide.subtitle}</p>}
+        {slide.results && <ResultsLegend slide={slide} />}
+
+        {slide.hero.length > 0 && (
+          <div className="hero-stats">
+            {slide.hero.map((s, i) => (
+              <StatChip
+                key={s.label + s.value}
+                stat={s}
+                play
+                delay={(first ? 1.5 : 0.75) + i * 0.08}
+                size={i === 0 ? 'xl' : 'lg'}
+                className={`js-stat float-${i % 3}`}
+              />
+            ))}
+          </div>
+        )}
+
+        {isMobile && extras && slide.visual !== 'results' && (
+          <button className="details-btn js-in" onClick={() => presentation.set({ detailsOpen: true })}>
+            Batafsil
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M6 15l6-6 6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+          </button>
+        )}
+
+        {slide.footnote && <p className="footnote js-in">{slide.footnote}</p>}
+      </div>
+
+      <div className="slide__stage">
+        {slide.photos && <PhotoLayer photos={isMobile ? slide.photos.slice(0, 1) : slide.photos} eager={index === 0} />}
+        {!use3D && slide.visual !== 'results' && <FallbackVisual slide={slide} play />}
+        {showResultsList && (
+          <div className="fallback">
+            <ResultsList slide={slide} play />
+          </div>
+        )}
+      </div>
+
+      {slide.strip.length > 0 && !isMobile && (
+        <div className="strip" aria-label="Qoʻshimcha koʻrsatkichlar">
+          {slide.strip.map((s) => (
+            <StatChip key={s.label + s.value} stat={s} play delay={first ? 1.9 : 1.1} size="sm" className="js-stat" />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** Plays the exit animation of the current slide, then swaps in the next one. */
+export function useSlideExit(container: React.RefObject<HTMLDivElement | null>) {
+  const index = usePresentation((s) => s.index)
+  const shown = usePresentation((s) => s.shown)
+  const reduced = useReducedMotion()
+  const running = useRef(false)
+
+  useEffect(() => {
+    if (index === shown || running.current) return
+    const el = container.current?.querySelector('.slide')
+    const finish = () => {
+      running.current = false
+      presentation.set({ shown: presentation.get().index })
+    }
+    if (!el) return finish()
+    running.current = true
+    const dir = presentation.get().direction
+    const q = gsap.utils.selector(el)
+    const tl = gsap.timeline({ onComplete: finish })
+    if (reduced) {
+      tl.to(q(`${OUT_SELECTOR}, .js-photo, .js-in-kicker`), { opacity: 0, duration: 0.15 })
+      return
+    }
+    tl.to(q(`${OUT_SELECTOR}, .js-in-kicker`), {
+      opacity: 0,
+      y: -12,
+      z: -120,
+      scale: 0.97,
+      filter: 'blur(6px)',
+      duration: 0.42,
+      stagger: 0.015,
+      ease: 'power2.in',
+    })
+    const photos = q('.js-photo')
+    if (!photos.length) return
+    tl.to(
+      photos,
+      {
+        opacity: 0,
+        z: -320,
+        xPercent: -12 * dir,
+        rotateY: 10 * dir,
+        filter: 'blur(10px)',
+        duration: 0.5,
+        stagger: 0.03,
+        ease: 'power2.in',
+      },
+      0,
+    )
+  }, [index, shown, reduced, container])
+}
