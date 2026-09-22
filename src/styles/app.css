@@ -867,6 +867,21 @@ button:disabled {
   border-top: 9px solid var(--tone);
   border-bottom: 0;
 }
+/* bank logo tile (white so the brand colours stay true) */
+.funding__logo {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgba(15, 83, 146, 0.14), 0 6px 14px -8px rgba(15, 83, 146, 0.5);
+}
+.funding__logo img {
+  width: 26px;
+  height: 26px;
+}
 .funding__part--blue {
   --tone: var(--blue);
 }

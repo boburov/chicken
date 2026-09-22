@@ -26,6 +26,8 @@ export interface Stat {
   unit?: string
   label: string
   icon?: IconName
+  /** Brand logo image (e.g. the lending bank); shown instead of `icon`. */
+  logo?: { src: string; alt: string }
   tone?: Tone
 }
 

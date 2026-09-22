@@ -50,7 +50,11 @@ export function FinancingBlock({ data, delay = 1.5 }: { data: Financing; delay?:
       <div className="funding__parts">
         {parts.map((p, i) => (
           <div key={p.label} className={`funding__part funding__part--${p.tone} js-stat`}>
-            {p.icon && (
+            {p.logo ? (
+              <span className="funding__logo">
+                <img src={p.logo.src} alt={p.logo.alt} width={24} height={24} />
+              </span>
+            ) : p.icon && (
               <span className="funding__icon funding__icon--sm">
                 <Icon name={p.icon} size={16} />
               </span>

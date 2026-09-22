@@ -20,7 +20,14 @@ export const slides: Slide[] = [
     financing: {
       total: { value: '50', unit: 'mln AQSH dollar', label: 'Loyiha qiymati', icon: 'money' },
       parts: [
-        { value: '35', unit: 'mln $', label: 'Bank krediti', icon: 'bank', tone: 'blue' },
+        {
+          value: '35',
+          unit: 'mln $',
+          label: 'Bank krediti',
+          icon: 'bank',
+          logo: { src: '/img/mkbank.svg', alt: 'Mikrokreditbank logotipi' },
+          tone: 'blue',
+        },
         { value: '15', unit: 'mln $', label: 'Oʻz hisobidan', icon: 'wallet', tone: 'purple' },
       ],
     },
