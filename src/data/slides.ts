@@ -42,6 +42,15 @@ export const slides: Slide[] = [
         { label: 'Ish oʻrinlari', icon: 'workers', unit: 'nafar', before: '305', after: '705' },
       ],
     },
+    market: {
+      title: 'Andijon viloyati talabi va bizning ulush',
+      demandLabel: 'Viloyat talabi',
+      outputLabel: 'Bizning ishlab chiqarish',
+      rows: [
+        { label: 'Tuxum', icon: 'egg', unit: 'mln dona', demand: '720', output: '418' },
+        { label: 'Goʻsht', icon: 'bird', unit: 'ming tonna', demand: '52', output: '60' },
+      ],
+    },
     footnote: 'Korxona rahbari: Aliyev Shuhratbek Erkinovich',
     photos: [
       {

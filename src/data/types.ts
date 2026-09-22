@@ -46,6 +46,23 @@ export interface Financing {
   parts: (Stat & { tone: Tone })[]
 }
 
+/** One product: the region's yearly demand vs our yearly output (same unit). */
+export interface MarketRow {
+  label: string
+  icon?: IconName
+  unit: string
+  demand: string
+  output: string
+}
+
+/** How much of the region's demand we supply, per product. Percentages are computed. */
+export interface MarketShare {
+  title: string
+  demandLabel: string
+  outputLabel: string
+  rows: MarketRow[]
+}
+
 export interface ComparisonRow {
   label: string
   icon?: IconName
@@ -83,6 +100,7 @@ export interface Slide {
   visual: VisualKind
   photos?: Photo[]
   financing?: Financing
+  market?: MarketShare
   comparison?: Comparison
   footnote?: string
 }

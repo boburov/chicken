@@ -7,6 +7,7 @@ import { StatChip } from './StatChip'
 import { PhotoLayer } from './PhotoLayer'
 import { FallbackVisual } from './FallbackVisual'
 import { FinancingBlock } from './FinancingBlock'
+import { MarketShareBlock } from './MarketShareBlock'
 import { ComparisonPanel } from './ComparisonPanel'
 import { OUT_SELECTOR } from '../hooks/useSlideExit'
 
@@ -106,6 +107,7 @@ export function SlideView({ slide, index, use3D, first }: Props) {
         </h1>
         {slide.subtitle && <p className="subtitle js-in">{slide.subtitle}</p>}
         {slide.financing && <FinancingBlock data={slide.financing} delay={first ? 1.5 : 0.75} />}
+        {slide.market && <MarketShareBlock data={slide.market} delay={first ? 1.9 : 1} />}
 
         {slide.hero.length > 0 && (
           <div className="hero-stats">
