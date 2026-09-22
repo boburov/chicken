@@ -72,4 +72,3 @@ export const PoultryHouse = forwardRef<THREE.Group, ThreeElements['group']>(func
   )
 })
 
-export const HOUSE_SIZE = { L, D, H: H + RISE }

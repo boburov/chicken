@@ -24,11 +24,12 @@ export function Rise({ active, order = 0, baseDelay = 0.55, stagger = 0.06, mode
   const ref = useRef<THREE.Group>(null)
   const { reducedMotion } = useSceneSettings()
 
+  const baseY = (rest.position as [number, number, number] | undefined)?.[1] ?? 0
+
   useEffect(() => {
     const g = ref.current
     if (!g) return
     gsap.killTweensOf([g.scale, g.position])
-    const baseY = (rest.position as [number, number, number] | undefined)?.[1] ?? 0
     if (reducedMotion) {
       g.visible = active
       g.scale.set(1, 1, 1)
@@ -60,7 +61,7 @@ export function Rise({ active, order = 0, baseDelay = 0.55, stagger = 0.06, mode
         },
       })
     }
-  }, [active, reducedMotion])
+  }, [active, reducedMotion, baseY, baseDelay, order, stagger, mode])
 
   return (
     <group ref={ref} visible={false} scale={[1, 0.001, 1]} {...rest}>

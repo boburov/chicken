@@ -36,6 +36,17 @@ const fragment = /* glsl */ `
   }
 `
 
+/** Small deterministic PRNG so the particle field is identical on every mount. */
+function mulberry32(seed: number) {
+  return () => {
+    seed |= 0
+    seed = (seed + 0x6d2b79f5) | 0
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
 /** Soft blue/purple glowing motes drifting along the whole campus path. */
 export function Particles() {
   const { layout, reducedMotion } = useSceneSettings()
@@ -44,19 +55,20 @@ export function Particles() {
 
   const geometry = useMemo(() => {
     const span = (groupOrder.length - 1) * GROUP_SPACING
+    const rand = mulberry32(7)
     const pos = new Float32Array(count * 3)
     const col = new Float32Array(count * 3)
     const size = new Float32Array(count)
     const phase = new Float32Array(count)
     const palette = [new THREE.Color('#176BFF'), new THREE.Color('#7B3FF2'), new THREE.Color('#BDA7FF'), new THREE.Color('#5C9BFF')]
     for (let i = 0; i < count; i++) {
-      pos[i * 3] = -18 + Math.random() * (span + 36)
-      pos[i * 3 + 1] = 0.5 + Math.random() * 9
-      pos[i * 3 + 2] = -14 + Math.random() * 22
+      pos[i * 3] = -18 + rand() * (span + 36)
+      pos[i * 3 + 1] = 0.5 + rand() * 9
+      pos[i * 3 + 2] = -14 + rand() * 22
       const c = palette[i % palette.length]
       col.set([c.r, c.g, c.b], i * 3)
-      size[i] = 1.2 + Math.random() * 3.2
-      phase[i] = Math.random() * Math.PI * 2
+      size[i] = 1.2 + rand() * 3.2
+      phase[i] = rand() * Math.PI * 2
     }
     const g = new THREE.BufferGeometry()
     g.setAttribute('position', new THREE.BufferAttribute(pos, 3))

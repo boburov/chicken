@@ -12,11 +12,13 @@ export interface PresentationState {
   shown: number
   direction: 1 | -1
   detailsOpen: boolean
+  /** True once the user has left the first slide (disables the long intro delay). */
+  hasNavigated: boolean
 }
 
 type Listener = () => void
 
-let state: PresentationState = { index: 0, shown: 0, direction: 1, detailsOpen: false }
+let state: PresentationState = { index: 0, shown: 0, direction: 1, detailsOpen: false, hasNavigated: false }
 const listeners = new Set<Listener>()
 
 function emit() {
@@ -37,7 +39,7 @@ export const presentation = {
   goTo(i: number) {
     const next = Math.max(0, Math.min(slides.length - 1, i))
     if (next === state.index) return
-    presentation.set({ index: next, direction: next > state.index ? 1 : -1, detailsOpen: false })
+    presentation.set({ index: next, direction: next > state.index ? 1 : -1, detailsOpen: false, hasNavigated: true })
   },
   next() {
     presentation.goTo(state.index + 1)

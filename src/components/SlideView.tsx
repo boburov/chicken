@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import gsap from 'gsap'
 import type { Slide } from '../data/types'
 import { presentation, usePresentation } from '../state/presentation'
@@ -6,7 +6,9 @@ import { useLayout, useReducedMotion } from '../hooks/useMedia'
 import { StatChip } from './StatChip'
 import { PhotoLayer } from './PhotoLayer'
 import { FallbackVisual } from './FallbackVisual'
-import { ResultsLegend, ResultsList } from './ResultsList'
+import { FinancingBlock } from './FinancingBlock'
+import { ComparisonPanel } from './ComparisonPanel'
+import { OUT_SELECTOR } from '../hooks/useSlideExit'
 
 interface Props {
   slide: Slide
@@ -15,8 +17,6 @@ interface Props {
   /** First slide shown after page load: waits for the backdrop + camera entrance. */
   first: boolean
 }
-
-const OUT_SELECTOR = '.js-line, .js-in, .js-stat'
 
 /**
  * One slide's HTML layer (text, stats, photos, data strip). Mounted per slide; the
@@ -36,7 +36,12 @@ export function SlideView({ slide, index, use3D, first }: Props) {
     const ctx = gsap.context(() => {
       const d0 = first ? 0.9 : 0.15
       if (reduced) {
-        gsap.from(gsap.utils.selector(el)(`${OUT_SELECTOR}, .js-photo, .js-in-kicker`), { opacity: 0, duration: 0.3, delay: first ? 0.2 : 0 })
+        // Explicit end value: a plain from() can capture a mid-fade opacity on remount.
+        gsap.fromTo(
+          gsap.utils.selector(el)(`${OUT_SELECTOR}, .js-photo, .js-in-kicker`),
+          { opacity: 0 },
+          { opacity: 1, duration: 0.3, delay: first ? 0.2 : 0 },
+        )
         return
       }
       const q = gsap.utils.selector(el)
@@ -77,8 +82,8 @@ export function SlideView({ slide, index, use3D, first }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const showResultsList = slide.visual === 'results' && (!use3D || isMobile)
-  const extras = slide.hero.length > 1 || slide.strip.length > 0 || !!slide.tags?.length || !!slide.investment
+  // On phones, secondary numbers (strip + 3D tags) move into the “Batafsil” sheet.
+  const extras = slide.strip.length > 0 || (!!slide.tags?.length && use3D)
 
   return (
     <div
@@ -101,7 +106,8 @@ export function SlideView({ slide, index, use3D, first }: Props) {
           ))}
         </h1>
         {slide.subtitle && <p className="subtitle js-in">{slide.subtitle}</p>}
-        {slide.results && <ResultsLegend slide={slide} />}
+        {slide.financing && <FinancingBlock data={slide.financing} delay={first ? 1.5 : 0.75} />}
+        {slide.comparison && <ComparisonPanel data={slide.comparison} delay={first ? 1.5 : 0.8} />}
 
         {slide.hero.length > 0 && (
           <div className="hero-stats">
@@ -118,7 +124,7 @@ export function SlideView({ slide, index, use3D, first }: Props) {
           </div>
         )}
 
-        {isMobile && extras && slide.visual !== 'results' && (
+        {isMobile && extras && (
           <button className="details-btn js-in" onClick={() => presentation.set({ detailsOpen: true })}>
             Batafsil
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -132,16 +138,11 @@ export function SlideView({ slide, index, use3D, first }: Props) {
 
       <div className="slide__stage">
         {slide.photos && <PhotoLayer photos={isMobile ? slide.photos.slice(0, 1) : slide.photos} eager={index === 0} />}
-        {!use3D && slide.visual !== 'results' && <FallbackVisual slide={slide} play />}
-        {showResultsList && (
-          <div className="fallback">
-            <ResultsList slide={slide} play />
-          </div>
-        )}
+        {!use3D && <FallbackVisual slide={slide} play />}
       </div>
 
       {slide.strip.length > 0 && !isMobile && (
-        <div className="strip" aria-label="Qoʻshimcha koʻrsatkichlar">
+        <div className="strip js-in" aria-label="Qoʻshimcha koʻrsatkichlar">
           {slide.strip.map((s) => (
             <StatChip key={s.label + s.value} stat={s} play delay={first ? 1.9 : 1.1} size="sm" className="js-stat" />
           ))}
@@ -149,56 +150,4 @@ export function SlideView({ slide, index, use3D, first }: Props) {
       )}
     </div>
   )
-}
-
-/** Plays the exit animation of the current slide, then swaps in the next one. */
-export function useSlideExit(container: React.RefObject<HTMLDivElement | null>) {
-  const index = usePresentation((s) => s.index)
-  const shown = usePresentation((s) => s.shown)
-  const reduced = useReducedMotion()
-  const running = useRef(false)
-
-  useEffect(() => {
-    if (index === shown || running.current) return
-    const el = container.current?.querySelector('.slide')
-    const finish = () => {
-      running.current = false
-      presentation.set({ shown: presentation.get().index })
-    }
-    if (!el) return finish()
-    running.current = true
-    const dir = presentation.get().direction
-    const q = gsap.utils.selector(el)
-    const tl = gsap.timeline({ onComplete: finish })
-    if (reduced) {
-      tl.to(q(`${OUT_SELECTOR}, .js-photo, .js-in-kicker`), { opacity: 0, duration: 0.15 })
-      return
-    }
-    tl.to(q(`${OUT_SELECTOR}, .js-in-kicker`), {
-      opacity: 0,
-      y: -12,
-      z: -120,
-      scale: 0.97,
-      filter: 'blur(6px)',
-      duration: 0.42,
-      stagger: 0.015,
-      ease: 'power2.in',
-    })
-    const photos = q('.js-photo')
-    if (!photos.length) return
-    tl.to(
-      photos,
-      {
-        opacity: 0,
-        z: -320,
-        xPercent: -12 * dir,
-        rotateY: 10 * dir,
-        filter: 'blur(10px)',
-        duration: 0.5,
-        stagger: 0.03,
-        ease: 'power2.in',
-      },
-      0,
-    )
-  }, [index, shown, reduced, container])
 }

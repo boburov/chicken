@@ -4,7 +4,6 @@ import type { Slide } from '../data/types'
 import { presentation, usePresentation } from '../state/presentation'
 import { StatChip } from './StatChip'
 import { StatValue } from './StatValue'
-import { InvestmentTree } from './FallbackVisual'
 
 /** Mobile-only glass sheet holding the secondary numbers (“Batafsil”). */
 export function DetailsSheet({ slide }: { slide: Slide }) {
@@ -48,9 +47,8 @@ export function DetailsSheet({ slide }: { slide: Slide }) {
             ))}
           </ul>
         )}
-        {slide.investment && <InvestmentTree node={slide.investment} play={false} />}
         <div className="sheet__stats">
-          {[...slide.hero.slice(1), ...slide.strip].map((s) => (
+          {slide.strip.map((s) => (
             <StatChip key={s.label + s.value} stat={s} play={false} size="sm" />
           ))}
         </div>

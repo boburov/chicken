@@ -61,18 +61,3 @@ export function particleSprite() {
   })
   return sprite
 }
-
-let barGrad: THREE.CanvasTexture | null = null
-/** Vertical blue → purple gradient used on 2027 bars. */
-export function barGradient() {
-  if (barGrad) return barGrad
-  barGrad = canvasTexture(4, 256, (ctx) => {
-    const g = ctx.createLinearGradient(0, 256, 0, 0)
-    g.addColorStop(0, '#176BFF')
-    g.addColorStop(0.65, '#5a55f7')
-    g.addColorStop(1, '#7B3FF2')
-    ctx.fillStyle = g
-    ctx.fillRect(0, 0, 4, 256)
-  })
-  return barGrad
-}

@@ -12,35 +12,16 @@ import { BackdropPanes } from './BackdropPanes'
 import { GROUP_SPACING, groupOrder, groupX } from './layout'
 import { CoverGroup } from './groups/CoverGroup'
 import { CurrentGroup } from './groups/CurrentGroup'
-import { EggProjectGroup } from './groups/EggProjectGroup'
-import { BroilerGroup } from './groups/BroilerGroup'
-import { InvestmentGroup } from './groups/InvestmentGroup'
-import { ResultsGroup } from './groups/ResultsGroup'
 
 const bySlide = (kind: string) => slides.find((s) => s.visual === kind)!
 
-/** Only groups adjacent to the active slide are mounted, so far-away scenes cost nothing. */
 function Groups() {
   const index = usePresentation((s) => s.index)
   const active = slides[index].visual
-  const near = (kind: (typeof groupOrder)[number]) => Math.abs(groupOrder.indexOf(kind) - index) <= 1
   return (
     <>
-      {near('cover') && <CoverGroup active={active === 'cover'} x={groupX('cover')} />}
-      {near('current') && <CurrentGroup slide={bySlide('current')} active={active === 'current'} x={groupX('current')} />}
-      {near('eggProject') && (
-        <EggProjectGroup slide={bySlide('eggProject')} active={active === 'eggProject'} x={groupX('eggProject')} />
-      )}
-      {near('broiler12') && (
-        <BroilerGroup slide={bySlide('broiler12')} active={active === 'broiler12'} x={groupX('broiler12')} count={12} />
-      )}
-      {near('broiler6') && (
-        <BroilerGroup slide={bySlide('broiler6')} active={active === 'broiler6'} x={groupX('broiler6')} count={6} />
-      )}
-      {near('investment') && (
-        <InvestmentGroup slide={bySlide('investment')} active={active === 'investment'} x={groupX('investment')} />
-      )}
-      {near('results') && <ResultsGroup slide={bySlide('results')} active={active === 'results'} x={groupX('results')} />}
+      <CoverGroup slide={bySlide('cover')} active={active === 'cover'} x={groupX('cover')} />
+      <CurrentGroup slide={bySlide('current')} active={active === 'current'} x={groupX('current')} />
     </>
   )
 }

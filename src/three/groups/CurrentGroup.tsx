@@ -8,11 +8,11 @@ import { SceneTag } from '../SceneTag'
 export function CurrentGroup({ slide, active, x }: { slide: Slide; active: boolean; x: number }) {
   const tag = (id: string) => slide.tags!.find((t) => t.id === id)!
   const houses: { id: string; pos: [number, number, number] }[] = [
-    { id: 'parent', pos: [-7, 0, -3.4] },
-    { id: 'hatch', pos: [0, 0, -3.4] },
-    { id: 'rearing', pos: [7, 0, -3.4] },
-    { id: 'eggs', pos: [-4.6, 0, 3.6] },
-    { id: 'meat', pos: [4.6, 0, 3.6] },
+    { id: 'parent', pos: [-7, 0, -4.2] },
+    { id: 'hatch', pos: [0, 0, -4.2] },
+    { id: 'rearing', pos: [7, 0, -4.2] },
+    { id: 'eggs', pos: [-5, 0, 4.4] },
+    { id: 'meat', pos: [5, 0, 4.4] },
   ]
   return (
     <group position={[x, 0, 0]}>
@@ -24,11 +24,11 @@ export function CurrentGroup({ slide, active, x }: { slide: Slide; active: boole
           <SceneTag tag={tag(h.id)} position={[h.pos[0], 2.1, h.pos[2]]} active={active} order={i} />
         </group>
       ))}
-      <Rise active={active} order={5} position={[0, 0, 0.4]} stagger={0.08}>
+      <Rise active={active} order={5} position={[0, 0, 1]} stagger={0.08}>
         <Silo scale={0.78} />
       </Rise>
-      <SceneTag tag={tag('feed')} position={[1.25, 1.9, 0.4]} active={active} order={5} variant="accent" align="left" />
-      <Rise active={active} order={6} position={[-4.6, 0, 6]}>
+      <SceneTag tag={tag('feed')} position={[0, 2.85, 1]} active={active} order={5} variant="accent" />
+      <Rise active={active} order={6} position={[-5, 0, 6.8]}>
         <EggCluster />
       </Rise>
     </group>

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
-import { formatValue, parseValue } from '../lib/number'
+import { display, formatValue, parseValue } from '../lib/number'
 import { useReducedMotion } from '../hooks/useMedia'
 
 interface Props {
@@ -23,8 +23,9 @@ export function StatValue({ value, play, delay = 0, duration = 1.3 }: Props) {
     const el = ref.current
     if (!el) return
     const p = parseValue(value)
+    const final = display(value)
     if (!p.numeric || reduced || !play) {
-      el.textContent = value
+      el.textContent = final
       return
     }
     const o = { n: 0 }
@@ -38,18 +39,18 @@ export function StatValue({ value, play, delay = 0, duration = 1.3 }: Props) {
         el.textContent = formatValue(o.n, p)
       },
       onComplete: () => {
-        el.textContent = value
+        el.textContent = final
       },
     })
     return () => {
       tw.kill()
-      el.textContent = value
+      el.textContent = final
     }
   }, [value, play, delay, duration, reduced])
 
   return (
     <span ref={ref} className="stat-value" aria-label={value}>
-      {value}
+      {display(value)}
     </span>
   )
 }

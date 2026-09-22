@@ -1,5 +1,7 @@
 export type IconName =
   | 'money'
+  | 'bank'
+  | 'wallet'
   | 'factory'
   | 'machine'
   | 'bird'
@@ -13,25 +15,29 @@ export type IconName =
   | 'tax'
   | 'growth'
 
-/** A single number as printed in the brochure. `value` is kept as a string so the
- *  original formatting (decimals, separators) is preserved exactly. */
+/** Brand accent used to link a stat to its segment in a chart. */
+export type Tone = 'blue' | 'purple'
+
+/** A single number exactly as provided. `value` is kept as a string so the original
+ *  formatting (decimals, separators) is preserved exactly. */
 export interface Stat {
   value: string
   unit?: string
   label: string
   icon?: IconName
+  tone?: Tone
 }
 
 export interface Photo {
   src: string
   alt: string
   /** Named position in the stage; see PhotoLayer for the slot map. */
-  slot: 'hero' | 'a' | 'b' | 'c' | 'd'
+  slot: 'hero'
   /** Relative depth: 0 = front, 1 = far back. Drives parallax and entrance. */
   depth: number
 }
 
-/** A floating tag attached to an object in the 3D scene. */
+/** A floating data label anchored to an object in the 3D scene. */
 export interface SceneTag {
   id: string
   title: string
@@ -40,28 +46,28 @@ export interface SceneTag {
   caption?: string
 }
 
-export interface ResultPair {
+/** Project financing: total plus its parts, drawn as a ring around the brand medallion. */
+export interface Financing {
+  total: Stat
+  parts: (Stat & { tone: Tone })[]
+}
+
+export interface ComparisonRow {
   label: string
   unit: string
+  note?: string
   before: string
   after: string
 }
 
-export interface InvestmentNode {
-  value: string
-  unit: string
-  label?: string
-  children?: InvestmentNode[]
+/** “Now → after the new project” comparison. */
+export interface Comparison {
+  beforeLabel: string
+  afterLabel: string
+  rows: ComparisonRow[]
 }
 
-export type VisualKind =
-  | 'cover'
-  | 'current'
-  | 'eggProject'
-  | 'broiler12'
-  | 'broiler6'
-  | 'investment'
-  | 'results'
+export type VisualKind = 'cover' | 'current'
 
 export interface Slide {
   id: string
@@ -78,7 +84,7 @@ export interface Slide {
   visual: VisualKind
   tags?: SceneTag[]
   photos?: Photo[]
-  results?: { beforeYear: string; afterYear: string; pairs: ResultPair[] }
-  investment?: InvestmentNode
+  financing?: Financing
+  comparison?: Comparison
   footnote?: string
 }

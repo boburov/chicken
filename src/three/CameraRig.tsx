@@ -8,7 +8,7 @@ import { cameraPoses, groupX } from './layout'
 import { useSceneSettings } from './sceneSettings'
 
 /** Computes the camera position that fits a slide's frame inside the on-screen stage rect. */
-function poseFor(index: number, cam: THREE.PerspectiveCamera, vw: number, vh: number) {
+function poseFor(index: number, cam: THREE.PerspectiveCamera, vw: number, vh: number, frameScale = 1) {
   const kind = slides[index].visual
   const p = cameraPoses[kind]
   const gx = groupX(kind)
@@ -18,19 +18,23 @@ function poseFor(index: number, cam: THREE.PerspectiveCamera, vw: number, vh: nu
   const rw = Math.max(0.2, stageRect.width / vw)
   const rh = Math.max(0.2, stageRect.height / vh)
   const aspect = vw / vh
-  const dW = p.frame[0] / (2 * tanHalf * aspect * rw)
-  const dH = p.frame[1] / (2 * tanHalf * rh)
+  const dW = (p.frame[0] * frameScale) / (2 * tanHalf * aspect * rw)
+  const dH = (p.frame[1] * frameScale) / (2 * tanHalf * rh)
   const d = Math.max(dW, dH)
   return { target, position: target.clone().add(dir.multiplyScalar(d)) }
 }
 
 export function CameraRig() {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera
+  const scene = useThree((s) => s.scene)
   const size = useThree((s) => s.size)
   const invalidate = useThree((s) => s.invalidate)
   const index = usePresentation((s) => s.index)
   const { reducedMotion, layout } = useSceneSettings()
   const light = useRef<THREE.DirectionalLight>(null)
+  // Phones crop a little of each scene's margin so buildings stay legible; portrait
+  // tablets get extra headroom so floating tags stay inside the short stage.
+  const frameScale = layout === 'mobile' ? 0.9 : layout === 'tablet' && size.height > size.width ? 1.3 : 1
 
   const rig = useMemo(
     () => ({
@@ -48,7 +52,8 @@ export function CameraRig() {
     const w = size.width
     const h = size.height
     const cx = stageRect.x + stageRect.width / 2
-    const cy = stageRect.y + stageRect.height / 2
+    // Floating tags sit above the buildings, so the scene is centred slightly low.
+    const cy = stageRect.y + stageRect.height * 0.54
     camera.setViewOffset(w, h, w / 2 - cx, h / 2 - cy, w, h)
     rig.lastVersion = stageRect.version
   }
@@ -56,7 +61,7 @@ export function CameraRig() {
   // Travel to the active slide.
   useEffect(() => {
     applyViewOffset()
-    const next = poseFor(index, camera, size.width, size.height)
+    const next = poseFor(index, camera, size.width, size.height, frameScale)
     gsap.killTweensOf([rig.pos, rig.target, rig.lift])
     if (reducedMotion || !rig.initialised) {
       rig.pos.copy(next.position)
@@ -80,18 +85,18 @@ export function CameraRig() {
   // Re-fit on resize / stage change without animation.
   useEffect(() => {
     applyViewOffset()
-    const p = poseFor(presentation.get().index, camera, size.width, size.height)
+    const p = poseFor(presentation.get().index, camera, size.width, size.height, frameScale)
     gsap.killTweensOf([rig.pos, rig.target])
     rig.pos.copy(p.position)
     rig.target.copy(p.target)
     invalidate()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [size.width, size.height, layout])
+  }, [size.width, size.height, layout, frameScale])
 
   useFrame(() => {
     if (rig.lastVersion !== stageRect.version) {
       applyViewOffset()
-      const p = poseFor(presentation.get().index, camera, size.width, size.height)
+      const p = poseFor(presentation.get().index, camera, size.width, size.height, frameScale)
       if (!gsap.isTweening(rig.pos)) {
         rig.pos.copy(p.position)
         rig.target.copy(p.target)
@@ -106,6 +111,14 @@ export function CameraRig() {
       rig.pos.z + rig.lift.v * 3,
     )
     camera.lookAt(rig.target)
+    // Fog follows the camera distance, so the active group is always clear while
+    // neighbouring groups fade out — regardless of how far a small screen pulls back.
+    const fog = scene.fog as THREE.Fog | null
+    if (fog) {
+      const dist = camera.position.distanceTo(rig.target)
+      fog.near = dist + 8
+      fog.far = dist + 48
+    }
     if (light.current) {
       light.current.position.set(rig.target.x + 7, 14, rig.target.z + 9)
       light.current.target.position.copy(rig.target)

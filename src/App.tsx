@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { slides } from './data/slides'
 import { presentation, stageRect, usePresentation } from './state/presentation'
 import { useNavigationInput } from './hooks/useNavigationInput'
@@ -6,7 +6,8 @@ import { canUseWebGL } from './lib/webgl'
 import { pad2 } from './lib/number'
 import { TopNav } from './components/TopNav'
 import { Controls } from './components/Controls'
-import { SlideView, useSlideExit } from './components/SlideView'
+import { SlideView } from './components/SlideView'
+import { useSlideExit } from './hooks/useSlideExit'
 import { DetailsSheet } from './components/DetailsSheet'
 import { useLayout } from './hooks/useMedia'
 
@@ -59,13 +60,12 @@ function usePreloadNeighbours(index: number) {
 export default function App() {
   const shown = usePresentation((s) => s.shown)
   const index = usePresentation((s) => s.index)
-  const use3D = useMemo(canUseWebGL, [])
+  const [use3D] = useState(canUseWebGL)
   const layout = useLayout()
   const stageAnchor = useRef<HTMLDivElement>(null)
   const content = useRef<HTMLDivElement>(null)
   // The very first slide waits for the backdrop + camera entrance; later ones don't.
-  const [firstId] = useState(() => slides[0].id)
-  const [entered, setEntered] = useState(false)
+  const hasNavigated = usePresentation((s) => s.hasNavigated)
   const [ready, setReady] = useState(false)
 
   useNavigationInput()
@@ -77,10 +77,6 @@ export default function App() {
     const t = requestAnimationFrame(() => setReady(true))
     return () => cancelAnimationFrame(t)
   }, [])
-
-  useEffect(() => {
-    if (shown !== 0) setEntered(true)
-  }, [shown])
 
   // Close the mobile sheet if the layout grows past mobile.
   useEffect(() => {
@@ -108,7 +104,7 @@ export default function App() {
       <div className="stage-anchor" ref={stageAnchor} aria-hidden="true" />
 
       <main className="content" ref={content}>
-        <SlideView key={slide.id} slide={slide} index={shown} use3D={use3D} first={!entered && slide.id === firstId} />
+        <SlideView key={slide.id} slide={slide} index={shown} use3D={use3D} first={!hasNavigated} />
       </main>
 
       <Controls />
