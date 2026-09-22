@@ -4,15 +4,14 @@ import gsap from 'gsap'
 import * as THREE from 'three'
 import { slides } from '../data/slides'
 import { pointer, presentation, stageRect, usePresentation } from '../state/presentation'
-import { cameraPoses, groupX } from './layout'
+import { cameraPoses } from './layout'
 import { useSceneSettings } from './sceneSettings'
 
 /** Computes the camera position that fits a slide's frame inside the on-screen stage rect. */
 function poseFor(index: number, cam: THREE.PerspectiveCamera, vw: number, vh: number, frameScale = 1) {
   const kind = slides[index].visual
   const p = cameraPoses[kind]
-  const gx = groupX(kind)
-  const target = new THREE.Vector3(p.target[0] + gx, p.target[1], p.target[2])
+  const target = new THREE.Vector3(...p.target)
   const dir = new THREE.Vector3(...p.dir).normalize()
   const tanHalf = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2))
   const rw = Math.max(0.2, stageRect.width / vw)
@@ -32,9 +31,8 @@ export function CameraRig() {
   const index = usePresentation((s) => s.index)
   const { reducedMotion, layout } = useSceneSettings()
   const light = useRef<THREE.DirectionalLight>(null)
-  // Phones crop a little of each scene's margin so buildings stay legible; portrait
-  // tablets get extra headroom so floating tags stay inside the short stage.
-  const frameScale = layout === 'mobile' ? 0.9 : layout === 'tablet' && size.height > size.width ? 1.3 : 1
+  // Portrait tablets get extra headroom so the ring labels stay inside the stage.
+  const frameScale = layout === 'tablet' && size.height > size.width ? 1.15 : 1
 
   const rig = useMemo(
     () => ({
@@ -52,8 +50,7 @@ export function CameraRig() {
     const w = size.width
     const h = size.height
     const cx = stageRect.x + stageRect.width / 2
-    // Floating tags sit above the buildings, so the scene is centred slightly low.
-    const cy = stageRect.y + stageRect.height * 0.54
+    const cy = stageRect.y + stageRect.height / 2
     camera.setViewOffset(w, h, w / 2 - cx, h / 2 - cy, w, h)
     rig.lastVersion = stageRect.version
   }
@@ -111,8 +108,7 @@ export function CameraRig() {
       rig.pos.z + rig.lift.v * 3,
     )
     camera.lookAt(rig.target)
-    // Fog follows the camera distance, so the active group is always clear while
-    // neighbouring groups fade out — regardless of how far a small screen pulls back.
+    // Fog follows the camera distance so depth haze stays constant on every screen size.
     const fog = scene.fog as THREE.Fog | null
     if (fog) {
       const dist = camera.position.distanceTo(rig.target)

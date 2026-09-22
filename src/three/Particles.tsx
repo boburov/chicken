@@ -2,7 +2,6 @@ import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { particleSprite } from './textures'
-import { GROUP_SPACING, groupOrder } from './layout'
 import { useSceneSettings } from './sceneSettings'
 
 const vertex = /* glsl */ `
@@ -47,14 +46,13 @@ function mulberry32(seed: number) {
   }
 }
 
-/** Soft blue/purple glowing motes drifting along the whole campus path. */
+/** Soft blue/purple glowing motes drifting around the scene. */
 export function Particles() {
   const { layout, reducedMotion } = useSceneSettings()
-  const count = layout === 'mobile' ? 160 : layout === 'tablet' ? 280 : 420
+  const count = layout === 'mobile' ? 90 : layout === 'tablet' ? 140 : 200
   const mat = useRef<THREE.ShaderMaterial>(null)
 
   const geometry = useMemo(() => {
-    const span = (groupOrder.length - 1) * GROUP_SPACING
     const rand = mulberry32(7)
     const pos = new Float32Array(count * 3)
     const col = new Float32Array(count * 3)
@@ -62,7 +60,7 @@ export function Particles() {
     const phase = new Float32Array(count)
     const palette = [new THREE.Color('#176BFF'), new THREE.Color('#7B3FF2'), new THREE.Color('#BDA7FF'), new THREE.Color('#5C9BFF')]
     for (let i = 0; i < count; i++) {
-      pos[i * 3] = -18 + rand() * (span + 36)
+      pos[i * 3] = -18 + rand() * 36
       pos[i * 3 + 1] = 0.5 + rand() * 9
       pos[i * 3 + 2] = -14 + rand() * 22
       const c = palette[i % palette.length]

@@ -24,9 +24,6 @@ export function useNavigationInput() {
         case 'End':
           presentation.goTo(presentation.count - 1)
           break
-        case 'Escape':
-          if (presentation.get().detailsOpen) presentation.set({ detailsOpen: false })
-          break
       }
     }
 

@@ -28,6 +28,7 @@ export function SlideView({ slide, index, use3D, first }: Props) {
   const layout = useLayout()
   const direction = usePresentation((s) => s.direction)
   const isMobile = layout === 'mobile'
+  const single = presentation.count === 1
 
   // Entrance
   useLayoutEffect(() => {
@@ -82,8 +83,6 @@ export function SlideView({ slide, index, use3D, first }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // On phones, secondary numbers (strip + 3D tags) move into the “Batafsil” sheet.
-  const extras = slide.strip.length > 0 || (!!slide.tags?.length && use3D)
 
   return (
     <div
@@ -91,7 +90,7 @@ export function SlideView({ slide, index, use3D, first }: Props) {
       ref={root}
       role="group"
       aria-roledescription="slayd"
-      aria-label={`${index + 1} / ${presentation.count}: ${slide.navLabel}`}
+      aria-label={single ? slide.navLabel : `${index + 1} / ${presentation.count}: ${slide.navLabel}`}
     >
       <div className="slide__text">
         <p className="kicker js-in-kicker">
@@ -107,7 +106,6 @@ export function SlideView({ slide, index, use3D, first }: Props) {
         </h1>
         {slide.subtitle && <p className="subtitle js-in">{slide.subtitle}</p>}
         {slide.financing && <FinancingBlock data={slide.financing} delay={first ? 1.5 : 0.75} />}
-        {slide.comparison && <ComparisonPanel data={slide.comparison} delay={first ? 1.5 : 0.8} />}
 
         {slide.hero.length > 0 && (
           <div className="hero-stats">
@@ -124,22 +122,15 @@ export function SlideView({ slide, index, use3D, first }: Props) {
           </div>
         )}
 
-        {isMobile && extras && (
-          <button className="details-btn js-in" onClick={() => presentation.set({ detailsOpen: true })}>
-            Batafsil
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M6 15l6-6 6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-            </svg>
-          </button>
-        )}
-
         {slide.footnote && <p className="footnote js-in">{slide.footnote}</p>}
       </div>
 
       <div className="slide__stage">
         {slide.photos && <PhotoLayer photos={isMobile ? slide.photos.slice(0, 1) : slide.photos} eager={index === 0} />}
-        {!use3D && <FallbackVisual slide={slide} play />}
+        {!use3D && <FallbackVisual slide={slide} />}
       </div>
+
+      {slide.comparison && <ComparisonPanel data={slide.comparison} delay={first ? 1.9 : 0.9} />}
 
       {slide.strip.length > 0 && !isMobile && (
         <div className="strip js-in" aria-label="Qoʻshimcha koʻrsatkichlar">

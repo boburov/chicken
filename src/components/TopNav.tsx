@@ -29,7 +29,7 @@ export function TopNav() {
         </span>
       </button>
 
-      <nav className="topnav__sections" aria-label="Boʻlimlar">
+      <nav className="topnav__sections" aria-label="Boʻlimlar" hidden={slides.length < 2}>
         {slides.map((s, i) => (
           <button
             key={s.id}

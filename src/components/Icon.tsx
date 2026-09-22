@@ -3,6 +3,7 @@ import type { IconName } from '../data/types'
 /** Minimal line icons echoing the brochure's pictograms. */
 const paths: Record<IconName, string> = {
   money: 'M9 4h6l-1.5 3h-3zM7 9.5C5 11.5 4 14 4 16a5 5 0 0 0 5 5h6a5 5 0 0 0 5-5c0-2-1-4.5-3-6.5zM12 11v7M14 12.5h-3a1.2 1.2 0 0 0 0 2.5h2a1.2 1.2 0 0 1 0 2.5h-3',
+  egg: 'M12 3c-3.6 0-6.5 5.4-6.5 10a6.5 6.5 0 0 0 13 0C18.5 8.4 15.6 3 12 3z',
   bank: 'M3 9l9-5 9 5M4 9h16M5 9v9M9.5 9v9M14.5 9v9M19 9v9M3 20h18',
   wallet: 'M4 7h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a1 1 0 0 1-1-1zM4 7l11-3v3M16 13.5h.01',
   factory: 'M3 21V11l5 3v-3l5 3v-3l5 3V4h3v17zM7 17h2M11 17h2M15 17h2',

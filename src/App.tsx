@@ -8,8 +8,6 @@ import { TopNav } from './components/TopNav'
 import { Controls } from './components/Controls'
 import { SlideView } from './components/SlideView'
 import { useSlideExit } from './hooks/useSlideExit'
-import { DetailsSheet } from './components/DetailsSheet'
-import { useLayout } from './hooks/useMedia'
 
 // The 3D bundle (three + r3f + drei) loads in parallel with first paint.
 const Stage = lazy(() => import('./three/Stage'))
@@ -61,7 +59,6 @@ export default function App() {
   const shown = usePresentation((s) => s.shown)
   const index = usePresentation((s) => s.index)
   const [use3D] = useState(canUseWebGL)
-  const layout = useLayout()
   const stageAnchor = useRef<HTMLDivElement>(null)
   const content = useRef<HTMLDivElement>(null)
   // The very first slide waits for the backdrop + camera entrance; later ones don't.
@@ -78,15 +75,10 @@ export default function App() {
     return () => cancelAnimationFrame(t)
   }, [])
 
-  // Close the mobile sheet if the layout grows past mobile.
-  useEffect(() => {
-    if (layout !== 'mobile') presentation.set({ detailsOpen: false })
-  }, [layout])
-
   const slide = slides[shown]
 
   return (
-    <div className={`app ${ready ? 'is-ready' : ''} ${use3D ? 'has-3d' : 'no-3d'}`}>
+    <div className={`app ${ready ? 'is-ready' : ''} ${use3D ? 'has-3d' : 'no-3d'} ${slides.length === 1 ? 'is-single' : ''}`}>
       <div className="backdrop" aria-hidden="true">
         <span className="backdrop__glow backdrop__glow--blue" />
         <span className="backdrop__glow backdrop__glow--violet" />
@@ -107,11 +99,11 @@ export default function App() {
         <SlideView key={slide.id} slide={slide} index={shown} use3D={use3D} first={!hasNavigated} />
       </main>
 
-      <Controls />
-      {layout === 'mobile' && <DetailsSheet slide={slide} />}
+      {/* Prev/next, dots and counter only make sense with more than one slide. */}
+      {slides.length > 1 && <Controls />}
 
       <p className="sr-only" aria-live="polite" aria-atomic="true">
-        {`${pad2(shown + 1)} / ${pad2(slides.length)} — ${slide.kicker}. ${slide.title.join(' ')}`}
+        {`${slides.length > 1 ? `${pad2(shown + 1)} / ${pad2(slides.length)} — ` : ''}${slide.kicker}. ${slide.title.join(' ')}`}
       </p>
     </div>
   )

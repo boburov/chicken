@@ -1,5 +1,6 @@
 export type IconName =
   | 'money'
+  | 'egg'
   | 'bank'
   | 'wallet'
   | 'factory'
@@ -37,15 +38,6 @@ export interface Photo {
   depth: number
 }
 
-/** A floating data label anchored to an object in the 3D scene. */
-export interface SceneTag {
-  id: string
-  title: string
-  value?: string
-  unit?: string
-  caption?: string
-}
-
 /** Project financing: total plus its parts, drawn as a ring around the brand medallion. */
 export interface Financing {
   total: Stat
@@ -54,6 +46,7 @@ export interface Financing {
 
 export interface ComparisonRow {
   label: string
+  icon?: IconName
   unit: string
   note?: string
   before: string
@@ -67,7 +60,7 @@ export interface Comparison {
   rows: ComparisonRow[]
 }
 
-export type VisualKind = 'cover' | 'current'
+export type VisualKind = 'cover'
 
 export interface Slide {
   id: string
@@ -82,7 +75,6 @@ export interface Slide {
   /** Secondary stats shown in the thin data strip (desktop) / details sheet (mobile). */
   strip: Stat[]
   visual: VisualKind
-  tags?: SceneTag[]
   photos?: Photo[]
   financing?: Financing
   comparison?: Comparison
