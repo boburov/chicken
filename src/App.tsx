@@ -1,6 +1,6 @@
 import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { slides } from './data/slides'
-import { presentation, stageRect, usePresentation } from './state/presentation'
+import { stageRect, usePresentation } from './state/presentation'
 import { useNavigationInput } from './hooks/useNavigationInput'
 import { canUseWebGL } from './lib/webgl'
 import { pad2 } from './lib/number'

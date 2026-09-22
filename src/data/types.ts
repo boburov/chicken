@@ -51,10 +51,14 @@ export interface ComparisonRow {
   note?: string
   before: string
   after: string
+  /** Unit for the “after” value when it differs from `unit`, e.g. mlrd → trln. */
+  afterUnit?: string
 }
 
 /** “Now → after the new project” comparison. */
 export interface Comparison {
+  /** Heading above the cards. */
+  title: string
   beforeLabel: string
   afterLabel: string
   rows: ComparisonRow[]

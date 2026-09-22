@@ -1,68 +1,52 @@
 import type { Comparison } from '../data/types'
-import { display, toNumber } from '../lib/number'
+import { display } from '../lib/number'
 import { Icon } from './Icon'
 import { StatValue } from './StatValue'
 
-/** “Now → after the new project” as a row of result cards with animated bars. */
+/** Result cards read top-to-bottom: “now” value → arrow → value after the new project. */
 export function ComparisonPanel({ data, delay = 0.8 }: { data: Comparison; delay?: number }) {
   return (
-    <section className="results js-in" aria-label={`${data.beforeLabel} va ${data.afterLabel}`}>
-      <header className="results__head">
-        <span className="results__legend results__legend--before">
-          <i aria-hidden="true" />
-          {data.beforeLabel}
-        </span>
-        <span className="results__arrow" aria-hidden="true">
-          →
-        </span>
-        <span className="results__legend results__legend--after">
-          <i aria-hidden="true" />
-          {data.afterLabel}
-        </span>
-      </header>
+    <section className="results js-in" aria-label={data.title}>
+      <h2 className="results__title">{data.title}</h2>
       <ul className="results__grid">
-        {data.rows.map((r, i) => {
-          const ratio = toNumber(r.before) / toNumber(r.after)
-          return (
-            <li key={r.label} className="result js-stat">
-              <div className="result__top">
-                {r.icon && (
-                  <span className="result__icon">
-                    <Icon name={r.icon} size={18} />
-                  </span>
-                )}
-                <span className="result__label">
-                  <strong>{r.label}</strong>
-                  <small>
-                    {r.unit}
-                    {r.note && ` · ${r.note}`}
-                  </small>
+        {data.rows.map((r, i) => (
+          <li key={r.label} className="result js-stat">
+            <div className="result__top">
+              {r.icon && (
+                <span className="result__icon">
+                  <Icon name={r.icon} size={18} />
                 </span>
-              </div>
-              <div className="result__values">
-                <span className="result__before">
-                  <span className="sr-only">{data.beforeLabel}: </span>
-                  {display(r.before)}
-                </span>
-                <span className="result__to" aria-hidden="true">
-                  →
-                </span>
-                <span className="result__after">
-                  <span className="sr-only">{data.afterLabel}: </span>
-                  <StatValue value={r.after} play delay={delay + i * 0.1} />
-                </span>
-              </div>
-              <span
-                className="result__bar"
-                aria-hidden="true"
-                style={{ '--ratio': ratio, '--d': `${delay + 0.2 + i * 0.1}s` } as React.CSSProperties}
-              >
-                <span className="result__bar-after" />
-                <span className="result__bar-before" />
+              )}
+              <span className="result__label">
+                <strong>{r.label}</strong>
+                {r.note && <small>{r.note}</small>}
               </span>
-            </li>
-          )
-        })}
+            </div>
+
+            <div className="result__flow">
+              <div className="result__box result__box--before">
+                <span className="result__box-label">{data.beforeLabel}</span>
+                <span className="result__box-value">
+                  {display(r.before)} <small>{r.unit}</small>
+                </span>
+              </div>
+
+              <div className="result__arrow" aria-hidden="true" style={{ '--d': `${delay + 0.15 + i * 0.1}s` } as React.CSSProperties}>
+                <svg viewBox="0 0 24 30" width="22" height="26">
+                  <path d="M12 2 V22" />
+                  <path d="M5 16 L12 24 L19 16" />
+                </svg>
+              </div>
+
+              <div className="result__box result__box--after">
+                <span className="result__box-label">{data.afterLabel}</span>
+                <span className="result__box-value">
+                  <StatValue value={r.after} play delay={delay + 0.3 + i * 0.1} /> <small>{r.afterUnit ?? r.unit}</small>
+                </span>
+              </div>
+            </div>
+          </li>
+        ))}
       </ul>
     </section>
   )

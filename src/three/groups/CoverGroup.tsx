@@ -5,7 +5,7 @@ import gsap from 'gsap'
 import * as THREE from 'three'
 import { brand } from '../../data/slides'
 import type { Financing, Slide, Tone } from '../../data/types'
-import { toNumber } from '../../lib/number'
+import { financingShares } from '../../lib/financing'
 import { useSceneSettings } from '../sceneSettings'
 
 const RING_R = 1.94
@@ -32,6 +32,7 @@ class ArcCurve extends THREE.Curve<THREE.Vector3> {
 interface Segment {
   tone: Tone
   label: string
+  amount: string
   percent: number
   start: number
   sweep: number
@@ -41,17 +42,16 @@ interface Segment {
 
 /** Splits the ring clockwise from 12 o'clock in proportion to each financing part. */
 function buildSegments(f: Financing): Segment[] {
-  const values = f.parts.map((p) => toNumber(p.value))
-  const sum = values.reduce((a, b) => a + b, 0)
   let angle = Math.PI / 2
-  return f.parts.map((p, i) => {
-    const share = values[i] / sum
+  return financingShares(f).map((p) => {
+    const share = p.share
     const sweep = -(share * Math.PI * 2 - GAP)
     const tubular = Math.max(8, Math.round(share * 160))
     const seg: Segment = {
       tone: p.tone,
       label: p.label,
-      percent: Math.round(share * 100),
+      amount: `${p.value} ${p.unit ?? ''}`.trim(),
+      percent: p.percent,
       start: angle - GAP / 2,
       sweep,
       geometry: new THREE.TubeGeometry(new ArcCurve(angle - GAP / 2, sweep), tubular, TUBE_R, RADIAL_SEGMENTS, false),
@@ -183,8 +183,8 @@ export function CoverGroup({ slide, active, x }: { slide: Slide; active: boolean
               {showTags && (
                 <Html
                   position={[
-                    Math.cos(s.start + s.sweep / 2) * (RING_R + 0.62),
-                    Math.sin(s.start + s.sweep / 2) * (RING_R + 0.62),
+                    Math.cos(s.start + s.sweep / 2) * (RING_R + 0.85),
+                    Math.sin(s.start + s.sweep / 2) * (RING_R + 0.85),
                     0.2,
                   ]}
                   center
@@ -195,8 +195,14 @@ export function CoverGroup({ slide, active, x }: { slide: Slide; active: boolean
                     className={`ring-label ring-label--${s.tone} ${active ? 'is-active' : ''}`}
                     style={{ transitionDelay: active ? `${1.5 + i * 0.45}s` : '0s' }}
                   >
-                    <strong>{s.percent}%</strong>
-                    <span>{s.label}</span>
+                    <span className="ring-label__name">
+                      <i aria-hidden="true" />
+                      {s.label}
+                    </span>
+                    <span className="ring-label__value">
+                      {s.amount}
+                      <b>{s.percent}%</b>
+                    </span>
                   </div>
                 </Html>
               )}
